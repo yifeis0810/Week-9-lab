@@ -8,47 +8,55 @@ Created on Thu May 16 12:09:53 2024
 
 import random
 
-
 class Agent:
-    def __init__(self, id, x, y):
-        self.id = id
-        self.x = x
-        self.y = y
+    def __init__(self, world):
+        self.world = world
+        self.location = None
 
-    def move(self, grid):
-     
-        options = [(i, j) for i in range(len(grid)) for j in range(len(grid[0])) if grid[i][j] is None]
-        if options:
-            new_position = random.choice(options)
-            grid[self.x][self.y], grid[new_position[0]][new_position[1]] = None, self
-
-            self.x, self.y = new_position
+    def move(self):
+        
+        new_location = self.world.find_empty()
+        if new_location:
+            self.world.grid[self.location] = None  
+            self.world.grid[new_location] = self  
+            self.location = new_location
 
 class World:
-    def __init__(self, grid_size, num_agents):
-        self.grid = [[None for _ in range(grid_size)] for _ in range(grid_size)]
-        self.agents = []
-        for i in range(num_agents):
+    def __init__(self, size, num_agents):
+        self.size = size
+        self.grid = {(x, y): None for x in range(size[0]) for y in range(size[1])}
+        self.agents = [Agent(self) for _ in range(num_agents)]
+        self.init_agents()
+
+    def init_agents(self):
+       
+        for agent in self.agents:
             while True:
-                x, y = random.randint(0, grid_size-1), random.randint(0, grid_size-1)
-                if self.grid[x][y] is None:
-                    self.grid[x][y] = Agent(i, x, y)
-                    self.agents.append(self.grid[x][y])
+                loc = (random.randint(0, self.size[0] - 1), random.randint(0, self.size[1] - 1))
+                if self.grid[loc] is None:
+                    self.grid[loc] = agent
+                    agent.location = loc
                     break
 
-    def simulate(self, moves):
-        for _ in range(moves):
-            random.shuffle(self.agents)
-            for agent in self.agents:
-                agent.move(self.grid)
+    def find_empty(self):
+    
+        empty_locations = [loc for loc, occupant in self.grid.items() if occupant is None]
+        return random.choice(empty_locations) if empty_locations else None
 
+def simulate():
+  
+    size = (10, 10) 
+    num_agents = 20 
+    num_iterations = 10  
 
-grid_size = 10 
-num_agents = 20 
-moves = 50 
+    world = World(size, num_agents)
 
+    for _ in range(num_iterations):
+        for agent in world.agents:
+            agent.move()
 
-world = World(grid_size, num_agents)
-world.simulate(moves)
+if __name__ == "__main__":
+    simulate()
+
 
 #repo:https://github.com/yifeis0810/Week-9-lab
